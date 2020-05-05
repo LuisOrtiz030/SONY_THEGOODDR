@@ -61,3 +61,6 @@ typings/
 
 # dotenv environment variables file
 .env
+
+#Claves para Google Sheets
+keysGS.json
