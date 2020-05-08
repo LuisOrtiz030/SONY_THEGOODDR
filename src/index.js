@@ -30,20 +30,53 @@ module.exports = async function App(context) {
 
 
     if (context.event.payload === respuesta("C", 5) && context.state.step == 1) {
-
         db.ref('Registros').push(context.event.payload)
-            //TEXTO "Empezar" -- PAYLOAD "GET_STARTED"
-        console.log(`____Paso actual:${context.state.step}
-        ____Presionaron el botón: ${respuesta("C",4)}
-        ___Payload del botón: ${respuesta("C",5)}`);
 
+        let col = "E";
+        let titles = [16, 20, 24];
+        let contentTypes = titles.map(function(x) { return x - 1 });
+        let payloads = titles.map(function(x) { return x + 1 });
+        let len = titles.length
+
+        console.log({
+            __PasoActual: `${context.state.step}`,
+            __BtnAnterior: `${respuesta("C",4)}`,
+            __Payload: `${respuesta("C",5)}`,
+        });
 
         let step = context.state.step + 1;
         context.setState({
             step,
         });
-        console.log(`___Vamos al Paso:${step}`);
+
+        var opciones = [];
+        for (var i = 0; i < len; i++) {
+            var prop_contentType = `${respuesta(col,contentTypes[i])}`
+            var prop_title = `${respuesta(col,titles[i])}`
+            var prop_payload = `${respuesta(col,payloads[i])}`;
+
+            let obj_opciones = {
+                contentType: prop_contentType,
+                title: prop_title,
+                payload: prop_payload
+            };
+            opciones.push(obj_opciones)
+        }
+
+
+        await context.sendText(`${respuesta(col,7)}`); {
+            await context.sendText(`${respuesta(col,12)}`, {
+                quickReplies: opciones,
+            });
+        };
+
+        console.log({ __PasoSiguiente: `${step}` })
     }
+
+
+
+
+
 
     if (context.event.payload === respuesta("E", 17) && context.state.step == 2) {
         console.log(`Presionaron el botón: ${respuesta("E",16)}`);
