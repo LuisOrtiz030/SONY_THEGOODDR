@@ -1,7 +1,16 @@
 const spreadSheet = require("./spreadsheet")
+const admin = require('firebase-admin')
 
 
+const serviceAcount = require('./credentialFireBase.json')
 
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAcount),
+    databaseURL: 'https://sheetbots.firebaseio.com/'
+
+})
+
+const db = admin.database();
 
 module.exports = async function App(context) {
 
@@ -20,47 +29,36 @@ module.exports = async function App(context) {
     }
 
 
+    if (context.event.payload === respuesta("C", 5) && context.state.step == 1) {
+
+        db.ref('Registros').push(context.event.payload)
+            //TEXTO "Empezar" -- PAYLOAD "GET_STARTED"
+        console.log(`____Paso actual:${context.state.step}
+        ____Presionaron el botón: ${respuesta("C",4)}
+        ___Payload del botón: ${respuesta("C",5)}`);
 
 
-
-    if (context.event.isText && context.state.step !== "STEP_UNDEFINED") {
-
-        var step = respuesta("AE", 1)
-
+        let step = context.state.step + 1;
         context.setState({
             step,
         });
-
-        await context.sendText('Iniciando texto');
-
-
-        await context.sendText(respuesta("AE", 12));
-        await context.sendText(context.state.step);
-
+        console.log(`___Vamos al Paso:${step}`);
     }
 
-    if (context.event.isText && context.state.step == "STEP_UNDEFINED") {
-
-
-        await context.sendText('Continuando texto');
-
-        await context.sendText(respuesta("AE", 12));
-        await context.sendText(context.state.step);
-
-        var step = respuesta("B", 1)
-
+    if (context.event.payload === respuesta("E", 17) && context.state.step == 2) {
+        console.log(`Presionaron el botón: ${respuesta("E",16)}`);
+        console.log(`Payload: ${respuesta("E",17)}`);
+        let step = context.state.step + 1;
         context.setState({
             step,
         });
-
-
+        console.log(`Vamos al Paso:${step}`);
     }
 
 
 
 
-    if (context.event.isPayload) {
-        await context.sendText('Iniciando payload');
-        console.log("Enviaron un {payload}")
-    }
+
+
+
 }
