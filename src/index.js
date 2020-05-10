@@ -1,7 +1,5 @@
 const spreadSheet = require("./spreadsheet")
 const admin = require('firebase-admin')
-
-
 const serviceAcount = require('./credentialFireBase.json')
 
 admin.initializeApp({
@@ -12,9 +10,31 @@ admin.initializeApp({
 
 const db = admin.database();
 
+
+
 module.exports = async function App(context) {
 
-    var respuestas = await spreadSheet.data;
+    const respuestas = await spreadSheet.data;
+
+    var idPayload = () => {
+        if (context.event.isPayload) {
+            let obj_action = {
+                accion: "PAYLOAD",
+                valor: context.event.payload
+            }
+            return obj_action
+        }
+        if (context.event.isText) {
+
+            let obj_action = {
+                accion: "TEXT",
+                valor: context.event.text
+            }
+            return obj_action
+        }
+    }
+
+    var idPayload = idPayload();
 
     function respuesta(col, fila) {
         if (respuestas) {
@@ -29,8 +49,12 @@ module.exports = async function App(context) {
     }
 
 
-    if (context.event.payload === respuesta("C", 5) && context.state.step == 1) {
-        db.ref('Registros').push(context.event.payload)
+    if (idPayload.accion == "TEXT") {
+        console.log(idPayload.accion)
+    }
+
+
+    if (idPayload.valor === respuesta("C", 5) && context.state.step == 1) {
 
         let col = "E";
         let titles = [16, 20, 24];
@@ -73,11 +97,6 @@ module.exports = async function App(context) {
         console.log({ __PasoSiguiente: `${step}` })
     }
 
-
-
-
-
-
     if (context.event.payload === respuesta("E", 17) && context.state.step == 2) {
         console.log(`Presionaron el botón: ${respuesta("E",16)}`);
         console.log(`Payload: ${respuesta("E",17)}`);
@@ -87,11 +106,5 @@ module.exports = async function App(context) {
         });
         console.log(`Vamos al Paso:${step}`);
     }
-
-
-
-
-
-
 
 }
