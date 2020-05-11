@@ -34,6 +34,9 @@ module.exports = {
             appId: process.env.MESSENGER_APP_ID,
             appSecret: process.env.MESSENGER_APP_SECRET,
             verifyToken: process.env.MESSENGER_VERIFY_TOKEN,
+
+            fields: ['messages', 'messaging_postbacks'],
+
         },
         whatsapp: {
             enabled: false,

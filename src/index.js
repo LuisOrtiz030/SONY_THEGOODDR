@@ -2,6 +2,7 @@ const spreadSheet = require("./spreadsheet")
 const admin = require('firebase-admin')
 const serviceAcount = require('./credentialFireBase.json')
 
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAcount),
     databaseURL: 'https://sheetbots.firebaseio.com/'
@@ -16,7 +17,7 @@ module.exports = async function App(context) {
 
     const respuestas = await spreadSheet.data;
 
-    var idPayload = () => {
+    var id_accion = () => {
         if (context.event.isPayload) {
             let obj_action = {
                 accion: "PAYLOAD",
@@ -25,7 +26,6 @@ module.exports = async function App(context) {
             return obj_action
         }
         if (context.event.isText) {
-
             let obj_action = {
                 accion: "TEXT",
                 valor: context.event.text
@@ -34,7 +34,7 @@ module.exports = async function App(context) {
         }
     }
 
-    var idPayload = idPayload();
+    var id_accion = id_accion();
 
     function respuesta(col, fila) {
         if (respuestas) {
@@ -48,13 +48,81 @@ module.exports = async function App(context) {
         }
     }
 
+    async function resp_3op_text(columna, step_bot, ...link_image) {
 
-    if (idPayload.accion == "TEXT") {
-        console.log(idPayload.accion)
+        console.log(context.event.rawEvent);
+
+        if (id_accion.valor == respuesta(columna, 3) && context.state.step == step_bot) {
+            let col = columna;
+            let titles = [16, 20, 24];
+            let contentTypes = titles.map(function(x) { return x - 1 });
+            let payloads = titles.map(function(x) { return x + 1 });
+            let len_opciones = titles.length
+
+            console.log({
+                __PasoActual: `${context.state.step}`,
+                __BtnAnterior: `${respuesta("C",4)}`,
+                __Payload: `${respuesta("C",5)}`,
+            });
+
+            let step = context.state.step + 1;
+            context.setState({
+                step,
+            });
+
+            var opciones = [];
+            for (var i = 0; i < len_opciones; i++) {
+                var prop_contentType = `${respuesta(col,contentTypes[i])}`
+                var prop_title = `${respuesta(col,titles[i])}`
+                var prop_payload = `${respuesta(col,payloads[i])}`;
+
+                let obj_opciones = {
+                    contentType: prop_contentType,
+                    title: prop_title,
+                    payload: prop_payload
+                };
+                opciones.push(obj_opciones)
+            }
+
+            if (`${respuesta(col,6)}` == "TEXT") {
+
+                if (respuesta(col, 7).indexOf("@usuario") !== -1) {
+
+                    await context.sendText(`${respuesta(col,7)}`);
+
+
+                }
+
+                await context.sendText(`${respuesta(col,7)}`);
+            }
+            if (`${respuesta(col,6)}` == "IMAGE") {
+                await context.sendImage(link_image);
+            }
+            if (`${respuesta(col,6)}` == "") {
+                await context.sendText("");
+            };
+
+
+
+            await context.sendText(`${respuesta(col,12)}`, {
+                quickReplies: opciones,
+            });;
+
+            console.log({ __PasoSiguiente: `${step}` })
+        }
     }
 
 
-    if (idPayload.valor === respuesta("C", 5) && context.state.step == 1) {
+
+    if (id_accion.accion == "TEXT") {
+        console.log(id_accion.accion)
+    }
+
+
+
+    resp_3op_text("E", 1);
+
+    /*if (idPayload.valor === respuesta("C", 5) && context.state.step == 1) {
 
         let col = "E";
         let titles = [16, 20, 24];
@@ -86,7 +154,7 @@ module.exports = async function App(context) {
             };
             opciones.push(obj_opciones)
         }
-
+ 
 
         await context.sendText(`${respuesta(col,7)}`); {
             await context.sendText(`${respuesta(col,12)}`, {
@@ -106,5 +174,7 @@ module.exports = async function App(context) {
         });
         console.log(`Vamos al Paso:${step}`);
     }
+
+    */
 
 }
